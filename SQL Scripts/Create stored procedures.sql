@@ -76,9 +76,8 @@ VALUES ( @flag_title, @flag_location_page,
 
 END;
 GO
-
+-- Start StaffController Procedure
 -- Add staff
-
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -127,6 +126,38 @@ END CATCH
 END
 GO
 
+-- Edit staff
+CREATE PROCEDURE [dbo].[edit_staff](
+	@staff_id INT,
+	@staff_name VARCHAR(50),
+    @staff_contact_num	VARCHAR(15),
+    @staff_position VARCHAR(10)
+	)
+AS
+BEGIN
+BEGIN TRANSACTION
+BEGIN TRY
+DECLARE @error NVARCHAR(MAX)
+
+UPDATE dbo.staff
+SET	
+	staff_name = @staff_name,
+	staff_contact_num = @staff_contact_num,
+	staff_position = @staff_position
+WHERE
+	staff_id = @staff_id
+IF @@TRANCOUNT > 0 
+    COMMIT
+END TRY
+BEGIN CATCH
+SET @error = 'error'
+    IF @@TRANCOUNT > 0 BEGIN
+        ROLLBACK TRANSACTION
+        END
+    RAISERROR (@error,1,0)
+END CATCH
+END
+-- End StaffController Procedure
 
 -- Add venue
 SET ANSI_NULLS ON
@@ -176,7 +207,6 @@ SET @error = 'error'
 END CATCH
 END
 GO
-
 
 -- Delete timer
 
