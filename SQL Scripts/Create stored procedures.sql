@@ -76,7 +76,7 @@ VALUES ( @flag_title, @flag_location_page,
 
 END;
 GO
--- Start StaffController Procedure
+-- **** Start StaffController Procedure ****
 -- Add staff
 SET ANSI_NULLS ON
 GO
@@ -157,7 +157,35 @@ SET @error = 'error'
     RAISERROR (@error,1,0)
 END CATCH
 END
--- End StaffController Procedure
+
+-- Delete staff
+
+CREATE PROCEDURE [dbo].[delete_staff](
+	@staff_id int
+	)
+AS
+BEGIN
+BEGIN TRANSACTION
+BEGIN TRY
+
+DECLARE @error NVARCHAR(MAX)
+
+DELETE FROM dbo.staff WHERE staff_id = @staff_id
+DELETE FROM dbo.employment WHERE staff_id = @staff_id
+
+IF @@TRANCOUNT > 0 
+    COMMIT
+END TRY
+BEGIN CATCH
+SET @error = 'error'
+    IF @@TRANCOUNT > 0 BEGIN
+        ROLLBACK TRANSACTION
+        END
+    RAISERROR (@error,1,0)
+END CATCH
+END
+
+-- **** End StaffController Procedure ****
 
 -- Add venue
 SET ANSI_NULLS ON
