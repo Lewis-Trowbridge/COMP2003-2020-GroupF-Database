@@ -11,7 +11,7 @@ CREATE TABLE [dbo].[admins](
 	[admin_username] [varchar](50) NOT NULL,
 	[admin_password] [varchar](255) NOT NULL,
 	[admin_level] [varchar](15) NOT NULL,
-	[admin_salt] [varchar](255) NULL
+	[admin_salt] [varchar](255) NOT NULL
 ) ON [PRIMARY]
 GO
 ALTER TABLE [dbo].[admins] ADD PRIMARY KEY CLUSTERED 
@@ -40,7 +40,7 @@ CREATE TABLE [dbo].[venues](
 	[add_line_one] [varchar](100) NOT NULL,
 	[add_line_two] [varchar](100) NULL,
 	[city] [varchar](50) NOT NULL,
-	[county] [varchar](50) NULL
+	[county] [varchar](50) NOT NULL
 ) ON [PRIMARY]
 GO
 ALTER TABLE [dbo].[venues] ADD PRIMARY KEY CLUSTERED 
@@ -58,9 +58,9 @@ GO
 CREATE TABLE [dbo].[customers](
 	[customer_id] [int] IDENTITY(1,1) NOT NULL,
 	[customer_name] [varchar](50) NOT NULL,
-	[customer_contact_number] [int] NOT NULL,
-	[customer_username] [varchar](50) NOT NULL,
-	[customer_password] [varchar](255) NOT NULL
+	[customer_contact_number] [varchar] (15) NOT NULL,
+	[customer_username] [varchar](50) UNIQUE NOT NULL,
+	[customer_password] [varchar](255) NOT NULL,
 ) ON [PRIMARY]
 GO
 ALTER TABLE [dbo].[customers] ADD PRIMARY KEY CLUSTERED 
