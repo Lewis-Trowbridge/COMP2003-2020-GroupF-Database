@@ -187,6 +187,112 @@ END
 
 -- **** End StaffController Procedure ****
 
+-- **** Start CustomersController procedures ****
+
+-- Add customer
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[add_customer] (
+    @customer_name VARCHAR(50),
+    @customer_contact_number VARCHAR(15),
+    @customer_username VARCHAR (50),
+    @customer_password VARCHAR (255),
+    @response_message VARCHAR(MAX) OUTPUT
+)
+AS
+BEGIN
+BEGIN TRANSACTION
+
+    BEGIN TRY
+
+        INSERT INTO dbo.customers(customer_name, customer_contact_number, customer_username, customer_password)
+        VALUES
+        (@customer_name, @customer_contact_number, @customer_username, @customer_password)
+		
+		DECLARE @customer_id VARCHAR(MAX)
+
+		SELECT @customer_id = CAST(SCOPE_IDENTITY() AS VARCHAR(MAX))
+		
+        SET @response_message = CONCAT('200 ', @customer_id)
+
+        IF @@TRANCOUNT > 0 COMMIT
+		
+    END TRY
+
+    BEGIN CATCH
+		
+		DECLARE @existing_username VARCHAR(MAX)
+		
+		SELECT @existing_username = customer_username FROM customers WHERE customer_username = @existing_username
+		
+		IF ISNULL(@existing_username, 'username already exists') = 'username already exists'
+		BEGIN
+			SET @response_message = '208'
+		END
+		ELSE
+		BEGIN
+			SET @response_message = '500'
+		END
+
+        IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION
+		
+
+    END CATCH
+END
+    
+    
+GO
+
+-- Delete customer
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[delete_customer] (
+    @customer_id INT,
+    @response VARCHAR(MAX) OUTPUT
+)
+AS
+
+BEGIN
+
+    BEGIN TRANSACTION
+
+        BEGIN TRY
+
+            DECLARE @existing_customer INT
+            SELECT @existing_customer = customer_id FROM customers WHERE customer_id = @customer_id
+            IF ISNULL(@existing_customer, -1) = -1
+            BEGIN
+                SET @response = '404'
+
+                IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION
+            END
+            ELSE
+            BEGIN
+                DELETE FROM customers WHERE customers.customer_id = @customer_id
+
+                SET @response = '200'
+
+                IF @@TRANCOUNT > 0 COMMIT
+            END
+        
+        END TRY
+        BEGIN CATCH
+            SET @response = '500'
+			
+            IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION beginning_transaction
+        END CATCH
+
+END
+GO
+
+-- **** End CustomersController procedures ****
+
 -- Add venue
 SET ANSI_NULLS ON
 GO
