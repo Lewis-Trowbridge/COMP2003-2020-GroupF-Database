@@ -285,7 +285,7 @@ BEGIN
         BEGIN CATCH
             SET @response = '500'
 			
-            IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION beginning_transaction
+            IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION
         END CATCH
 
 END
