@@ -160,7 +160,12 @@ GO
 CREATE TABLE [dbo].[booking_attendees](
 	[booking_id] [int] NOT NULL,
 	[customer_id] [int] NOT NULL,
-	[booking_attended] [bit] NOT NULL
+	[booking_attended] [bit] NOT NULL,
+ CONSTRAINT [PK_booking_attendees] PRIMARY KEY CLUSTERED 
+(
+	[booking_id] ASC,
+	[customer_id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
 ALTER TABLE [dbo].[booking_attendees] ADD  DEFAULT ((0)) FOR [booking_attended]
@@ -175,6 +180,7 @@ REFERENCES [dbo].[customers] ([customer_id])
 ON UPDATE CASCADE
 ON DELETE CASCADE
 GO
+
 
 
 -- Staff
