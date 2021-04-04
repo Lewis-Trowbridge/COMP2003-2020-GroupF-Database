@@ -355,3 +355,61 @@ DELETE FROM bookings
 WHERE DATEADD(DAY, -21, GETDATE()) > GETDATE()
 END
 GO
+
+-- Book table
+	
+CREATE PROCEDURE [dbo].[book_table] @venue_table_id int, @customer_id int, 
+@booking_time DATETIME, @booking_size int, @booking_id int OUTPUT, @status_code INT OUTPUT
+AS
+BEGIN	
+	BEGIN TRY
+		BEGIN TRANSACTION
+
+			SET @status_code = 201;
+					
+			DECLARE @venue_id INT;
+			SET @venue_id = (SELECT venue_id FROM venue_tables WHERE venue_table_id = @venue_table_id); --gets the @venue_id from @venue_table_id
+		
+			INSERT INTO bookings(booking_time, booking_size, venue_id, venue_table_id)					
+			VALUES (@booking_time, @booking_size, @venue_id, @venue_table_id);
+
+			INSERT INTO booking_attendees(booking_id, customer_id, booking_attended)
+			VALUES (IDENT_CURRENT('bookings'), @customer_id, 0);
+
+			IF (NOT(CONVERT(TIME, @booking_time) >= (SELECT TOP 1 opening_times.venue_opening_time FROM opening_times WHERE opening_times.venue_id = @venue_id) AND
+			CONVERT(TIME, @booking_time) <= (SELECT TOP 1 opening_times.venue_closing_time FROM opening_times WHERE opening_times.venue_id = @venue_id)))
+			BEGIN
+				PRINT('Error - not in opening times');
+				SET @status_code = 400;
+				ROLLBACK;
+			END
+		
+			--IF checks that the booking is free -- got to check the booking is free an hour before and during (2 hours sounds about right)
+			IF ((SELECT COUNT(bookings.booking_id) FROM bookings WHERE bookings.venue_table_id = @venue_table_id AND DATEADD(HOUR,2,bookings.booking_time) > @booking_time AND DATEADD(HOUR,-2,bookings.booking_time) < @booking_time) - 1 != 0)
+			BEGIN
+				PRINT('Error - already a booking at that time');
+				SET @status_code = 400;
+				ROLLBACK;
+			END
+
+			IF (@booking_size = 0)
+			BEGIN
+				PRINT('Error - Booking for 0 people');
+				SET @status_code = 400;
+				ROLLBACK;
+			END
+
+			SET @booking_id = IDENT_CURRENT('bookings');
+
+		COMMIT;
+
+		RETURN @booking_id;
+
+	END TRY		
+BEGIN CATCH
+	PRINT 'Error';
+	SET @status_code = 500;
+END CATCH
+END
+GO
+-- **** End Book table ****
