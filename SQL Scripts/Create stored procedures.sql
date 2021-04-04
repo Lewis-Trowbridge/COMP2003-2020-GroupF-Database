@@ -158,6 +158,8 @@ SET @error = 'error'
 END CATCH
 END
 
+GO
+
 -- Delete staff
 
 CREATE PROCEDURE [dbo].[delete_staff](
@@ -184,6 +186,8 @@ SET @error = 'error'
     RAISERROR (@error,1,0)
 END CATCH
 END
+
+GO
 
 -- **** End StaffController Procedure ****
 
@@ -413,3 +417,50 @@ END CATCH
 END
 GO
 -- **** End Book table ****
+
+
+-- Delete booking
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[delete_booking] (
+    @booking_id INT,
+    @response VARCHAR(MAX) OUTPUT
+)
+AS
+
+BEGIN
+
+    BEGIN TRANSACTION
+    
+        BEGIN TRY
+
+        DECLARE @existing_booking INT
+            SELECT @existing_booking = booking_id FROM bookings WHERE booking_id = @booking_id
+            IF ISNULL(@existing_booking, -1) = -1
+            BEGIN
+                SET @response = '404'
+
+                IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION
+            END
+            ELSE
+            BEGIN
+                DELETE FROM bookings WHERE booking_id = @booking_id
+                DELETE FROM booking_attendees WHERE booking_id = @booking_id
+
+                SET @response = '200'
+
+                IF @@TRANCOUNT > 0 COMMIT
+            END
+        
+        END TRY
+        BEGIN CATCH
+            SET @response = '500'
+			
+            IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION
+        END CATCH
+
+END
+GO
