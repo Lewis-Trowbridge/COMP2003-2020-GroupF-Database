@@ -158,6 +158,8 @@ SET @error = 'error'
 END CATCH
 END
 
+GO
+
 -- Delete staff
 
 CREATE PROCEDURE [dbo].[delete_staff](
@@ -184,6 +186,8 @@ SET @error = 'error'
     RAISERROR (@error,1,0)
 END CATCH
 END
+
+GO
 
 -- **** End StaffController Procedure ****
 
@@ -246,6 +250,54 @@ END
     
 GO
 
+-- Delete customer
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[delete_customer] (
+    @customer_id INT,
+    @response VARCHAR(MAX) OUTPUT
+)
+AS
+
+BEGIN
+
+    BEGIN TRANSACTION
+
+        BEGIN TRY
+
+            DECLARE @existing_customer INT
+            SELECT @existing_customer = customer_id FROM customers WHERE customer_id = @customer_id
+            IF ISNULL(@existing_customer, -1) = -1
+            BEGIN
+                SET @response = '404'
+
+                IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION
+            END
+            ELSE
+            BEGIN
+                DELETE FROM customers WHERE customers.customer_id = @customer_id
+
+                SET @response = '200'
+
+                IF @@TRANCOUNT > 0 COMMIT
+            END
+        
+        END TRY
+        BEGIN CATCH
+            SET @response = '500'
+			
+            IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION
+        END CATCH
+
+END
+GO
+
+-- **** End CustomersController procedures ****
+
+-- **** Start VenueController procedures ****
 
 -- Add venue
 SET ANSI_NULLS ON
@@ -295,7 +347,70 @@ SET @error = 'error'
 END CATCH
 END
 GO
+-- Edit Venue
+CREATE PROCEDURE [dbo].[edit_venue](
+	@venue_id INT,
+	@venue_name VARCHAR(50),
+	@venue_postcode VARCHAR(10),
+	@add_line_one VARCHAR(100),
+	@add_line_two VARCHAR(100),
+	@city VARCHAR(50),
+	@county VARCHAR(50)
+	)
+AS
+BEGIN
+BEGIN TRANSACTION
+BEGIN TRY
+DECLARE @error NVARCHAR(MAX)
 
+UPDATE dbo.venues
+SET
+	venue_name = @venue_name,
+	add_line_one = @add_line_one,
+	add_line_two = @add_line_two,
+	venue_postcode = @venue_postcode,
+	city = @city,
+	county = @county
+WHERE
+	venue_id = @venue_id
+
+IF @@TRANCOUNT > 0 
+    COMMIT
+END TRY
+BEGIN CATCH
+SET @error = 'error'
+    IF @@TRANCOUNT > 0 BEGIN
+        ROLLBACK TRANSACTION
+        END
+    RAISERROR (@error,1,0)
+END CATCH
+END
+
+-- Delete Venue
+CREATE PROCEDURE [dbo].[delete_venue](
+	@venue_id int
+	)
+AS
+BEGIN
+BEGIN TRANSACTION
+BEGIN TRY
+
+DECLARE @error NVARCHAR(MAX)
+
+DELETE FROM dbo.venues WHERE venue_id = @venue_id
+
+IF @@TRANCOUNT > 0 
+    COMMIT
+END TRY
+BEGIN CATCH
+SET @error = 'error'
+    IF @@TRANCOUNT > 0 BEGIN
+        ROLLBACK TRANSACTION
+        END
+    RAISERROR (@error,1,0)
+END CATCH
+END
+-- **** End VenueController procedures ****
 -- Delete timer
 
 SET ANSI_NULLS ON
@@ -307,5 +422,110 @@ AS
 BEGIN
 DELETE FROM bookings
 WHERE DATEADD(DAY, -21, GETDATE()) > GETDATE()
+END
+GO
+
+-- Book table
+	
+CREATE PROCEDURE [dbo].[book_table] @venue_table_id int, @customer_id int, 
+@booking_time DATETIME, @booking_size int, @booking_id int OUTPUT, @status_code INT OUTPUT
+AS
+BEGIN	
+	BEGIN TRY
+		BEGIN TRANSACTION
+
+			SET @status_code = 201;
+					
+			DECLARE @venue_id INT;
+			SET @venue_id = (SELECT venue_id FROM venue_tables WHERE venue_table_id = @venue_table_id); --gets the @venue_id from @venue_table_id
+		
+			INSERT INTO bookings(booking_time, booking_size, venue_id, venue_table_id)					
+			VALUES (@booking_time, @booking_size, @venue_id, @venue_table_id);
+
+			INSERT INTO booking_attendees(booking_id, customer_id, booking_attended)
+			VALUES (IDENT_CURRENT('bookings'), @customer_id, 0);
+
+			IF (NOT(CONVERT(TIME, @booking_time) >= (SELECT TOP 1 opening_times.venue_opening_time FROM opening_times WHERE opening_times.venue_id = @venue_id) AND
+			CONVERT(TIME, @booking_time) <= (SELECT TOP 1 opening_times.venue_closing_time FROM opening_times WHERE opening_times.venue_id = @venue_id)))
+			BEGIN
+				PRINT('Error - not in opening times');
+				SET @status_code = 400;
+				ROLLBACK;
+			END
+		
+			--IF checks that the booking is free -- got to check the booking is free an hour before and during (2 hours sounds about right)
+			IF ((SELECT COUNT(bookings.booking_id) FROM bookings WHERE bookings.venue_table_id = @venue_table_id AND DATEADD(HOUR,2,bookings.booking_time) > @booking_time AND DATEADD(HOUR,-2,bookings.booking_time) < @booking_time) - 1 != 0)
+			BEGIN
+				PRINT('Error - already a booking at that time');
+				SET @status_code = 400;
+				ROLLBACK;
+			END
+
+			IF (@booking_size = 0)
+			BEGIN
+				PRINT('Error - Booking for 0 people');
+				SET @status_code = 400;
+				ROLLBACK;
+			END
+
+			SET @booking_id = IDENT_CURRENT('bookings');
+
+		COMMIT;
+
+		RETURN @booking_id;
+
+	END TRY		
+BEGIN CATCH
+	PRINT 'Error';
+	SET @status_code = 500;
+END CATCH
+END
+GO
+-- **** End Book table ****
+
+
+-- Delete booking
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE PROCEDURE [dbo].[delete_booking] (
+    @booking_id INT,
+    @response VARCHAR(MAX) OUTPUT
+)
+AS
+
+BEGIN
+
+    BEGIN TRANSACTION
+    
+        BEGIN TRY
+
+        DECLARE @existing_booking INT
+            SELECT @existing_booking = booking_id FROM bookings WHERE booking_id = @booking_id
+            IF ISNULL(@existing_booking, -1) = -1
+            BEGIN
+                SET @response = '404'
+
+                IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION
+            END
+            ELSE
+            BEGIN
+                DELETE FROM bookings WHERE booking_id = @booking_id
+                DELETE FROM booking_attendees WHERE booking_id = @booking_id
+
+                SET @response = '200'
+
+                IF @@TRANCOUNT > 0 COMMIT
+            END
+        
+        END TRY
+        BEGIN CATCH
+            SET @response = '500'
+			
+            IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION
+        END CATCH
+
 END
 GO
