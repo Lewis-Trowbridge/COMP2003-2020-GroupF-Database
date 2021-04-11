@@ -297,6 +297,8 @@ GO
 
 -- **** End CustomersController procedures ****
 
+-- **** Start VenueController procedures ****
+
 -- Add venue
 SET ANSI_NULLS ON
 GO
@@ -345,7 +347,70 @@ SET @error = 'error'
 END CATCH
 END
 GO
+-- Edit Venue
+CREATE PROCEDURE [dbo].[edit_venue](
+	@venue_id INT,
+	@venue_name VARCHAR(50),
+	@venue_postcode VARCHAR(10),
+	@add_line_one VARCHAR(100),
+	@add_line_two VARCHAR(100),
+	@city VARCHAR(50),
+	@county VARCHAR(50)
+	)
+AS
+BEGIN
+BEGIN TRANSACTION
+BEGIN TRY
+DECLARE @error NVARCHAR(MAX)
 
+UPDATE dbo.venues
+SET
+	venue_name = @venue_name,
+	add_line_one = @add_line_one,
+	add_line_two = @add_line_two,
+	venue_postcode = @venue_postcode,
+	city = @city,
+	county = @county
+WHERE
+	venue_id = @venue_id
+
+IF @@TRANCOUNT > 0 
+    COMMIT
+END TRY
+BEGIN CATCH
+SET @error = 'error'
+    IF @@TRANCOUNT > 0 BEGIN
+        ROLLBACK TRANSACTION
+        END
+    RAISERROR (@error,1,0)
+END CATCH
+END
+
+-- Delete Venue
+CREATE PROCEDURE [dbo].[delete_venue](
+	@venue_id int
+	)
+AS
+BEGIN
+BEGIN TRANSACTION
+BEGIN TRY
+
+DECLARE @error NVARCHAR(MAX)
+
+DELETE FROM dbo.venues WHERE venue_id = @venue_id
+
+IF @@TRANCOUNT > 0 
+    COMMIT
+END TRY
+BEGIN CATCH
+SET @error = 'error'
+    IF @@TRANCOUNT > 0 BEGIN
+        ROLLBACK TRANSACTION
+        END
+    RAISERROR (@error,1,0)
+END CATCH
+END
+-- **** End VenueController procedures ****
 -- Delete timer
 
 SET ANSI_NULLS ON
