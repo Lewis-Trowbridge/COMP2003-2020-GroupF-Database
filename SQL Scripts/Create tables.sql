@@ -136,13 +136,16 @@ CREATE TABLE [dbo].[bookings](
 	[booking_time] [datetime] NOT NULL,
 	[booking_size] [int] NOT NULL,
 	[venue_id] [int] NOT NULL,
-	[venue_table_id] [int] NOT NULL
-) ON [PRIMARY]
-GO
-ALTER TABLE [dbo].[bookings] ADD PRIMARY KEY CLUSTERED 
+	[venue_table_id] [int] NOT NULL,
+	[staff_id] [int] NULL,
+PRIMARY KEY CLUSTERED 
 (
 	[booking_id] ASC
-)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ONLINE = OFF) ON [PRIMARY]
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+ALTER TABLE [dbo].[bookings]  WITH CHECK ADD FOREIGN KEY([staff_id])
+REFERENCES [dbo].[staff] ([staff_id])
 GO
 ALTER TABLE [dbo].[bookings]  WITH CHECK ADD FOREIGN KEY([venue_id])
 REFERENCES [dbo].[venues] ([venue_id])
@@ -150,7 +153,6 @@ GO
 ALTER TABLE [dbo].[bookings]  WITH CHECK ADD FOREIGN KEY([venue_table_id])
 REFERENCES [dbo].[venue_tables] ([venue_table_id])
 GO
-
 
 -- Booking attendees
 SET ANSI_NULLS ON
