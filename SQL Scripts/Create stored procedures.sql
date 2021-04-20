@@ -475,7 +475,7 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
-CREATE PROCEDURE [dbo].[deleteTimer]
+CREATE PROCEDURE [dbo].[delete_old_bookings]
 AS 
 BEGIN
 DELETE FROM bookings
