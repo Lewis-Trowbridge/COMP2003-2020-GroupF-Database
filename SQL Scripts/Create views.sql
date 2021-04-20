@@ -65,7 +65,8 @@ venue_id,
 customer_name,
 customer_contact_number,
 booking_time,
-staff_name
+staff_name,
+staff_contact_num
 
 FROM 
 bookings,
