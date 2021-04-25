@@ -9,9 +9,7 @@ GO
 CREATE TABLE [dbo].[admins](
 	[admin_id] [int] IDENTITY(1,1) NOT NULL,
 	[admin_username] [varchar](50) NOT NULL,
-	[admin_password] [varchar](255) NOT NULL,
-	[admin_level] [varchar](15) NOT NULL,
-	[admin_salt] [varchar](255) NOT NULL
+	[admin_password] [varchar](255) NOT NULL
 ) ON [PRIMARY]
 GO
 ALTER TABLE [dbo].[admins] ADD PRIMARY KEY CLUSTERED 
