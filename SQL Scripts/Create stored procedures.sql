@@ -6,37 +6,38 @@ SET QUOTED_IDENTIFIER ON
 GO
 CREATE PROCEDURE [dbo].[add_admin] (
     
-    @admin_username VARCHAR (100),
-    @admin_password VARCHAR (100),
-    @admin_level INT,
-    @admin_salt VARCHAR (15)
+    @admin_username VARCHAR (50),
+    @admin_password VARCHAR (255),
+    @response VARCHAR(max) OUTPUT
 )
 
 AS 
 BEGIN
-BEGIN TRANSACTION
-BEGIN TRY
+    BEGIN TRANSACTION
 
-DECLARE @error NVARCHAR(MAX)
-DECLARE @admin_id INT
-SET @admin_id = @@IDENTITY
+        BEGIN TRY
 
-INSERT INTO dbo.admins
-    (admin_id, admin_username, admin_password, admin_level, admin_salt)
-VALUES 
-    (@admin_id, @admin_username, @admin_password, @admin_level, @admin_salt)
+            DECLARE @admin_id INT;
 
- IF @@TRANCOUNT > 0
-        COMMIT
+            INSERT INTO dbo.admins
+                (admin_username, admin_password)
+            VALUES 
+                (@admin_username, @admin_password)
 
-END TRY
-BEGIN CATCH
-SET @error = 'Error'
-    IF @@TRANCOUNT > 0 BEGIN
-      ROLLBACK TRANSACTION
-      END
-    RAISERROR (@error, 1,0)
-END CATCH
+            SET @admin_id = CAST(SCOPE_IDENTITY() AS VARCHAR(MAX))
+
+            SET @response = CONCAT('200 ', @admin_id)
+
+            IF @@TRANCOUNT > 0
+                    COMMIT
+
+        END TRY
+        BEGIN CATCH
+                SET @response = '500'
+                IF @@TRANCOUNT > 0 BEGIN
+                ROLLBACK TRANSACTION
+                END
+        END CATCH
 END
 GO
 
