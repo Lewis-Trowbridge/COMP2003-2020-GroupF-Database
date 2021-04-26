@@ -41,14 +41,61 @@ BEGIN
 END
 GO
 
+-- Edit admin
 
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
+CREATE PROCEDURE [dbo].[edit_admin] (@admin_id INT, 
+    @admin_username VARCHAR (50),
+    @admin_password VARCHAR (255),
+    @response VARCHAR(MAX) OUTPUT)
+AS
+BEGIN
+    BEGIN TRY   
 
+        SET @response = '404';
+	    IF(@admin_id IS NOT NULL AND @admin_id !=0 AND (SELECT COUNT(admin_id) FROM admins WHERE admin_id = @admin_id) > 0)
+        BEGIN        
+    BEGIN TRANSACTION
+
+        IF (@admin_username IS NOT NULL AND @admin_username != '')
+        BEGIN
+            UPDATE admins
+            SET admin_username = @admin_username
+            WHERE admins.admin_id = @admin_id
+        END
+        IF (@admin_password IS NOT NULL AND @admin_password != '')
+        BEGIN
+            UPDATE admins
+            SET admin_password = @admin_password
+            WHERE admins.admin_id = @admin_id
+        END
+		
+        SET @response = '200';
+
+        IF @@TRANCOUNT > 0
+        COMMIT TRANSACTION
+		
+        END
+    END TRY
+
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+        ROLLBACK TRANSACTION
+        SET @response = '500';
+		
+    END CATCH
+END
+GO
 
 -- Add error
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
 
 CREATE PROCEDURE [dbo].[add_error]
 
