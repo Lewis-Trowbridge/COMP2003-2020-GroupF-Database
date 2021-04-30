@@ -293,3 +293,8 @@ CREATE TABLE [dbo].[flags](
 	[flag_resolved] [bit] NULL
 ) ON [PRIMARY]
 GO
+
+ALTER TABLE staff_shifts
+ALTER COLUMN staff_end_time DATETIME NULL
+
+GO
