@@ -635,3 +635,46 @@ BEGIN
 
 END
 GO
+
+create procedure clock_in_staff @staff_id INT
+AS
+BEGIN
+BEGIN TRY
+BEGIN TRANSACTION
+
+    IF ((SELECT COUNT(*) FROM staff WHERE staff_id = @staff_id) = 1)
+    BEGIN
+
+    -- This statement closes any open slots
+    IF ((SELECT COUNT(*) FROM staff_shifts WHERE staff_shifts.staff_id = @staff_id AND staff_end_time IS NULL AND staff_start_time IS NOT NULL) = 1)
+    BEGIN
+        PRINT 'Shift Closed';
+        UPDATE staff_shifts SET staff_end_time = CURRENT_TIMESTAMP WHERE staff_shifts.staff_id = @staff_id AND staff_end_time IS NULL AND staff_start_time IS NOT NULL;
+    END
+
+    -- IF there are no open slots, create an open entry
+    ELSE
+    BEGIN
+        PRINT 'Shift Opened';
+        INSERT INTO staff_shifts(staff_id, staff_start_time) VALUES(@staff_id, CURRENT_TIMESTAMP)
+    END
+
+    END
+
+    -- Only one thing should be inserted / updated
+    IF (@@TRANCOUNT != 1)
+    BEGIN
+        PRINT 'Error - Multiple Entries'; 
+        ROLLBACK;
+    END
+
+    COMMIT;
+
+END TRY
+BEGIN CATCH
+    PRINT 'Error';    
+END CATCH
+
+END
+
+GO
