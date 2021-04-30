@@ -41,14 +41,61 @@ BEGIN
 END
 GO
 
+-- Edit admin
 
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
+CREATE PROCEDURE [dbo].[edit_admin] (@admin_id INT, 
+    @admin_username VARCHAR (50),
+    @admin_password VARCHAR (255),
+    @response VARCHAR(MAX) OUTPUT)
+AS
+BEGIN
+    BEGIN TRY   
 
+        SET @response = '404';
+	    IF(@admin_id IS NOT NULL AND @admin_id !=0 AND (SELECT COUNT(admin_id) FROM admins WHERE admin_id = @admin_id) > 0)
+        BEGIN        
+    BEGIN TRANSACTION
+
+        IF (@admin_username IS NOT NULL AND @admin_username != '')
+        BEGIN
+            UPDATE admins
+            SET admin_username = @admin_username
+            WHERE admins.admin_id = @admin_id
+        END
+        IF (@admin_password IS NOT NULL AND @admin_password != '')
+        BEGIN
+            UPDATE admins
+            SET admin_password = @admin_password
+            WHERE admins.admin_id = @admin_id
+        END
+		
+        SET @response = '200';
+
+        IF @@TRANCOUNT > 0
+        COMMIT TRANSACTION
+		
+        END
+    END TRY
+
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+        ROLLBACK TRANSACTION
+        SET @response = '500';
+		
+    END CATCH
+END
+GO
 
 -- Add error
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
 
 CREATE PROCEDURE [dbo].[add_error]
 
@@ -587,4 +634,47 @@ BEGIN
         END CATCH
 
 END
+GO
+
+create procedure clock_in_staff @staff_id INT
+AS
+BEGIN
+BEGIN TRY
+BEGIN TRANSACTION
+
+    IF ((SELECT COUNT(*) FROM staff WHERE staff_id = @staff_id) = 1)
+    BEGIN
+
+    -- This statement closes any open slots
+    IF ((SELECT COUNT(*) FROM staff_shifts WHERE staff_shifts.staff_id = @staff_id AND staff_end_time IS NULL AND staff_start_time IS NOT NULL) = 1)
+    BEGIN
+        PRINT 'Shift Closed';
+        UPDATE staff_shifts SET staff_end_time = CURRENT_TIMESTAMP WHERE staff_shifts.staff_id = @staff_id AND staff_end_time IS NULL AND staff_start_time IS NOT NULL;
+    END
+
+    -- IF there are no open slots, create an open entry
+    ELSE
+    BEGIN
+        PRINT 'Shift Opened';
+        INSERT INTO staff_shifts(staff_id, staff_start_time) VALUES(@staff_id, CURRENT_TIMESTAMP)
+    END
+
+    END
+
+    -- Only one thing should be inserted / updated
+    IF (@@TRANCOUNT != 1)
+    BEGIN
+        PRINT 'Error - Multiple Entries'; 
+        ROLLBACK;
+    END
+
+    COMMIT;
+
+END TRY
+BEGIN CATCH
+    PRINT 'Error';    
+END CATCH
+
+END
+
 GO
