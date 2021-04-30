@@ -215,7 +215,7 @@ CREATE TABLE [dbo].[staff_shifts](
 	[staff_shift_id] [int] IDENTITY(1,1) NOT NULL,
 	[staff_id] [int] NULL,
 	[staff_start_time] [datetime] NOT NULL,
-	[staff_end_time] [datetime] NOT NULL
+	[staff_end_time] [datetime] NULL
 ) ON [PRIMARY]
 GO
 ALTER TABLE [dbo].[staff_shifts] ADD PRIMARY KEY CLUSTERED 
@@ -294,7 +294,4 @@ CREATE TABLE [dbo].[flags](
 ) ON [PRIMARY]
 GO
 
-ALTER TABLE staff_shifts
-ALTER COLUMN staff_end_time DATETIME NULL
 
-GO
