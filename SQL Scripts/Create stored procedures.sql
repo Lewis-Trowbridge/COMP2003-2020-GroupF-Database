@@ -516,7 +516,53 @@ SET @error = 'error'
     RAISERROR (@error,1,0)
 END CATCH
 END
+
 -- **** End VenueController procedures ****
+-- **** Start VenueTableController procedures ****
+
+-- Add Venue Table
+CREATE PROCEDURE [dbo].[add_venue_table] (
+	@venue_id INT,
+	@venue_table_number INT,
+	@venue_table_capacity INT
+)
+AS
+BEGIN
+	INSERT INTO venue_tables (venue_id, venue_table_num, venue_table_capacity) VALUES (@venue_id, @venue_table_number, @venue_table_capacity);
+END
+GO
+
+-- Edit Venue Table
+CREATE PROCEDURE [dbo].[edit_venue_table] (
+	@venue_table_id INT,
+	@venue_table_number INT,
+	@venue_table_capacity INT
+)
+AS
+BEGIN
+	IF (@venue_table_number IS NOT NULL)
+		BEGIN
+		UPDATE [dbo].[venue_tables] SET venue_table_num = @venue_table_number WHERE venue_table_id = @venue_table_id;
+		END
+	IF (@venue_table_capacity IS NOT NULL)
+		BEGIN
+		UPDATE [dbo].[venue_tables] SET venue_table_capacity = @venue_table_capacity WHERE venue_table_id = @venue_table_id;
+		END
+END
+GO
+
+-- Delete Venue Table
+CREATE PROCEDURE [dbo].[delete_venue_table] (
+	@venue_table_id INT
+)
+AS
+BEGIN
+	DELETE FROM [dbo].[venue_tables] WHERE venue_table_id = @venue_table_id;
+END
+GO
+
+-- **** End VenueTableController procedures ****
+
 -- Delete timer
 
 SET ANSI_NULLS ON
@@ -678,3 +724,4 @@ END CATCH
 END
 
 GO
+
