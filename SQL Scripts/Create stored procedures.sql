@@ -682,6 +682,28 @@ BEGIN
 END
 GO
 
+-- Booking Attended
+CREATE PROCEDURE [dbo].[attended_bookings] (
+	@booking_id INT,
+    @staff_id INT
+)
+AS
+BEGIN
+	UPDATE [dbo].[booking_attendees] SET booking_attended = 1 WHERE (booking_id = @booking_id);
+    UPDATE [dbo].[bookings] SET staff_id = @staff_id WHERE (booking_id = @booking_id);
+END
+GO
+
+-- Booking Cancel
+CREATE PROCEDURE [dbo].[cancel_bookings] (
+	@booking_id INT
+)
+AS
+BEGIN
+	DELETE FROM bookings WHERE booking_id = @booking_id
+END
+GO
+
 create procedure clock_in_staff @staff_id INT
 AS
 BEGIN
