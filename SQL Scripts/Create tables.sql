@@ -257,24 +257,6 @@ ON UPDATE CASCADE
 ON DELETE CASCADE
 GO
 
-
--- Opening times
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE [dbo].[opening_times](
-	[venue_time_id] [int] IDENTITY(1,1) NOT NULL,
-	[venue_id] [int] NOT NULL,
-	[venue_opening_time] [time](7) NOT NULL,
-	[venue_closing_time] [time](7) NOT NULL
-) ON [PRIMARY]
-GO
-ALTER TABLE [dbo].[opening_times]  WITH CHECK ADD FOREIGN KEY([venue_id])
-REFERENCES [dbo].[venues] ([venue_id])
-GO
-
-
 -- Flags
 SET ANSI_NULLS ON
 GO
