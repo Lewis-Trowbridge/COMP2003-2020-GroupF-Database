@@ -116,16 +116,17 @@ CREATE TABLE [dbo].[venue_tables](
 	[venue_table_id] [int] IDENTITY(1,1) NOT NULL,
 	[venue_id] [int] NOT NULL,
 	[venue_table_num] [int] NOT NULL,
-	[venue_table_capacity] [int] NOT NULL
-) ON [PRIMARY]
-GO
-ALTER TABLE [dbo].[venue_tables] ADD PRIMARY KEY CLUSTERED 
+	[venue_table_capacity] [int] NOT NULL,
+PRIMARY KEY CLUSTERED 
 (
 	[venue_table_id] ASC
-)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ONLINE = OFF) ON [PRIMARY]
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
 GO
 ALTER TABLE [dbo].[venue_tables]  WITH CHECK ADD FOREIGN KEY([venue_id])
 REFERENCES [dbo].[venues] ([venue_id])
+ON UPDATE CASCADE
+ON DELETE CASCADE
 GO
 
 -- Bookings
