@@ -148,13 +148,18 @@ PRIMARY KEY CLUSTERED
 GO
 ALTER TABLE [dbo].[bookings]  WITH CHECK ADD FOREIGN KEY([staff_id])
 REFERENCES [dbo].[staff] ([staff_id])
+ON UPDATE CASCADE
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[bookings]  WITH CHECK ADD FOREIGN KEY([venue_table_id])
+REFERENCES [dbo].[venue_tables] ([venue_table_id])
+ON UPDATE CASCADE
+ON DELETE CASCADE
 GO
 ALTER TABLE [dbo].[bookings]  WITH CHECK ADD FOREIGN KEY([venue_id])
 REFERENCES [dbo].[venues] ([venue_id])
 GO
-ALTER TABLE [dbo].[bookings]  WITH CHECK ADD FOREIGN KEY([venue_table_id])
-REFERENCES [dbo].[venue_tables] ([venue_table_id])
-GO
+
 
 -- Booking attendees
 SET ANSI_NULLS ON
