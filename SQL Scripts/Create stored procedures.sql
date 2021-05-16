@@ -1,3 +1,4 @@
+-- Start Admin Controller 
 -- Add admin
 
 SET ANSI_NULLS ON
@@ -89,6 +90,35 @@ BEGIN
     END CATCH
 END
 GO
+
+-- Delete Admin
+
+CREATE PROCEDURE [dbo].[delete_admin](
+	@admin_id int
+	)
+AS
+BEGIN
+BEGIN TRANSACTION
+BEGIN TRY
+
+DECLARE @error NVARCHAR(MAX)
+
+DELETE FROM dbo.admins WHERE admin_id = @admin_id
+DELETE FROM dbo.admin_locations WHERE admin_id = @admin_id
+
+IF @@TRANCOUNT > 0 
+    COMMIT
+END TRY
+BEGIN CATCH
+SET @error = 'error'
+    IF @@TRANCOUNT > 0 BEGIN
+        ROLLBACK TRANSACTION
+        END
+    RAISERROR (@error,1,0)
+END CATCH
+END
+
+-- **** End Admin Controller ****
 
 -- Add error
 

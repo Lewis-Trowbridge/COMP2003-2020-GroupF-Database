@@ -116,16 +116,17 @@ CREATE TABLE [dbo].[venue_tables](
 	[venue_table_id] [int] IDENTITY(1,1) NOT NULL,
 	[venue_id] [int] NOT NULL,
 	[venue_table_num] [int] NOT NULL,
-	[venue_table_capacity] [int] NOT NULL
-) ON [PRIMARY]
-GO
-ALTER TABLE [dbo].[venue_tables] ADD PRIMARY KEY CLUSTERED 
+	[venue_table_capacity] [int] NOT NULL,
+PRIMARY KEY CLUSTERED 
 (
 	[venue_table_id] ASC
-)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ONLINE = OFF) ON [PRIMARY]
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
 GO
 ALTER TABLE [dbo].[venue_tables]  WITH CHECK ADD FOREIGN KEY([venue_id])
 REFERENCES [dbo].[venues] ([venue_id])
+ON UPDATE CASCADE
+ON DELETE CASCADE
 GO
 
 -- Bookings
@@ -148,13 +149,18 @@ PRIMARY KEY CLUSTERED
 GO
 ALTER TABLE [dbo].[bookings]  WITH CHECK ADD FOREIGN KEY([staff_id])
 REFERENCES [dbo].[staff] ([staff_id])
+ON UPDATE CASCADE
+ON DELETE CASCADE
+GO
+ALTER TABLE [dbo].[bookings]  WITH CHECK ADD FOREIGN KEY([venue_table_id])
+REFERENCES [dbo].[venue_tables] ([venue_table_id])
+ON UPDATE CASCADE
+ON DELETE CASCADE
 GO
 ALTER TABLE [dbo].[bookings]  WITH CHECK ADD FOREIGN KEY([venue_id])
 REFERENCES [dbo].[venues] ([venue_id])
 GO
-ALTER TABLE [dbo].[bookings]  WITH CHECK ADD FOREIGN KEY([venue_table_id])
-REFERENCES [dbo].[venue_tables] ([venue_table_id])
-GO
+
 
 -- Booking attendees
 SET ANSI_NULLS ON
@@ -256,24 +262,6 @@ REFERENCES [dbo].[venues] ([venue_id])
 ON UPDATE CASCADE
 ON DELETE CASCADE
 GO
-
-
--- Opening times
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE [dbo].[opening_times](
-	[venue_time_id] [int] IDENTITY(1,1) NOT NULL,
-	[venue_id] [int] NOT NULL,
-	[venue_opening_time] [time](7) NOT NULL,
-	[venue_closing_time] [time](7) NOT NULL
-) ON [PRIMARY]
-GO
-ALTER TABLE [dbo].[opening_times]  WITH CHECK ADD FOREIGN KEY([venue_id])
-REFERENCES [dbo].[venues] ([venue_id])
-GO
-
 
 -- Flags
 SET ANSI_NULLS ON
